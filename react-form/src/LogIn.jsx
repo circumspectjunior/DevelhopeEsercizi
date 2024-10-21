@@ -63,8 +63,7 @@ const LogIn = ({onLogin}) => {
                   Login
                 </button>
 
-                //the event.preventDefault() is used to prevent the default behaviour of the form
-
+                
                 <button onClick={handleReset}>Reset</button>
                 </form>
               </div>

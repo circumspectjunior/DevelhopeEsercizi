@@ -1,6 +1,7 @@
 import './App.css';
 import InteractiveWelcome from './interactiveWelcome';
 import LogIn from './LogIn';
+import UnControlledLogIn from './unControlledLogIn';
 
 function App() {
 
@@ -19,6 +20,10 @@ function App() {
 
       <div>
         <LogIn onLogin={handleLogin} />
+      </div>
+
+      <div>
+        <UnControlledLogIn onLogin={handleLogin}/>
       </div>
     
     </>
