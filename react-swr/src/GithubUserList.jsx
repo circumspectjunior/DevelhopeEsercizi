@@ -4,11 +4,13 @@ import { useGithubUser } from "./useGithubUser";
 const GithubUserList = () => {
   const fetcher = (url) => fetch(url).then((res) => res.json());
   const {
-    data: list = [],
-    isLoading,
-    error,
-    mutate: updateList,
-  } = useGithubUser("https://api.github.com/users");
+    user,
+      isLoading,
+      error,
+      setUsername,
+      refetch,
+      username,
+  } = useGithubUser();
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading users</div>;
