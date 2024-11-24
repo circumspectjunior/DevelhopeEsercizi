@@ -1,6 +1,8 @@
 import * as fs from "node:fs";
+//another way of importing writeFile
+//import {writeFile} from "node:fs"
 
-const content = "Hello, this is a sample text file!";
+const content = "Hello, this is a sample text file1!";
 
 fs.writeFile("sample.txt", content, (err) => {
   if (err) {
