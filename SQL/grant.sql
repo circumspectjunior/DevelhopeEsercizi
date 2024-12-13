@@ -1,0 +1,2 @@
+CREATE USER martin WITH PASSWORD 'pippo123'; 
+GRANT SELECT, UPDATE ON Books TO martin;
