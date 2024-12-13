@@ -1,9 +1,12 @@
 import * as dotenv from "dotenv";
-import { Request, Response } from "express";
+import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { db } from "./db";
 
 dotenv.config();
+const app = express();
+
+app.use(express.json());
 
 
 const createUserDB = async () => {
@@ -47,7 +50,7 @@ const login = async (request: Request, response: Response) => {
           id: user.id,
           username: user.username
         };
-        const token = jwt.sign(payload, process.env.SECRET_KEY);
+        const token = jwt.sign(payload, process.env.SECRET as string);
   
         console.log("Token", token);
         await db.none(`UPDATE users SET token=$2 WHERE id=$1`, [user.id, token]);
@@ -91,8 +94,8 @@ const login = async (request: Request, response: Response) => {
   };
 
   export {
-    login,
-    signup
+  login,
+  signup
 };
   
 

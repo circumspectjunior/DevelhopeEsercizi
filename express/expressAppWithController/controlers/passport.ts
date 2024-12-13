@@ -14,7 +14,7 @@ type User = {
 passport.use(
     new passportJWT.Strategy(
       {
-        secretOrKey: process.env.SECRET_KEY as string,
+        secretOrKey: process.env.SECRET as string,
         jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken(),
       },
       async (payload, done) => {
