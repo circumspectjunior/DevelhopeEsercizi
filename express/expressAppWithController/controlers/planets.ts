@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 
 import Joi from "joi";
-import pgPromise from "pg-promise";
+import { db } from "./db";
 
 
-const db = pgPromise()("postgres://postgres:PrinceAlex10@localhost:5432/demoDB");
+
 
 console.log(db)
 /*
