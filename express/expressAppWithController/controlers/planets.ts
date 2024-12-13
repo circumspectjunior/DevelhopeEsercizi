@@ -1,9 +1,45 @@
 import { Request, Response } from "express";
+
 import Joi from "joi";
+import pgPromise from "pg-promise";
+
+
+const db = pgPromise()("postgres://postgres:PrinceAlex10@localhost:5432/demoDB");
+
+console.log(db)
+/*
+//set up db
+const createDB = async () => {
+    //Create a table called planets
+    await db.none(`
+        DROP TABLE IF EXISTS planets;
+
+        CREATE TABLE planets(
+         id SERIAL NOT NULL PRIMARY KEY,
+         name TEXT NOT NULL,
+         image TEXT
+    );
+
+    INSERT INTO planets (name) VALUES ('Earth'), ('Mars');
+`);
+
+
+const dbPlanets = await db.many(`
+    SELECT * FROM planets;
+    
+    `);
+
+//console .log(dbPlanets)
+
+    
+}
+createDB(); */
 
 
 
 
+/*
+//temporary db before using dataBase.
 type Planet = {
     id: number,
     name: string
@@ -15,7 +51,11 @@ let planets: Planets = [
     {id: 1, name: "Earth"},
     {id: 2, name: "Mars"}
 
-]
+] */
+
+
+
+
 
 const planetCheck = Joi.object(
     {
@@ -23,23 +63,36 @@ const planetCheck = Joi.object(
     name: Joi.string().min(3).max(25).required()
 })
 
+
+
 //get all the items inside planets array and show them
-const getPlanets =  (req: Request, res: Response) => {
-    if(planets){
-        res.status(200).json(planets)
+const getPlanets = async  (req: Request, res: Response) => {
+
+    const planet = await  db.many(`
+        SELECT * FROM planets;
+        `);
+    if(planet){
+
+        res.status(200).json(planet)
+        console.log(planet)
     }else{
       res.status(404).json("no planets available")  
     } 
 }
 
+
 //get the item where item id is = params.id
-const getPlanetOfParamId = (req:Request, res:Response) => {
+const getPlanetOfParamId = async (req:Request, res:Response) => {
     const {params} = req;
-    if(Joi.number().required().min(1).max(99).validate(params.planetId).error){
+    if(Joi.number().required().min(1).max(99).validate(params.planetsId).error){
      res.status(400).json("Invalid id format")
     }else{
-     const found: {id: number, name: string} | undefined = planets.find((e) => e.id === Number(params.planetId))
+     const found: {id: number, name: string} | null = await db.oneOrNone(`
+        SELECT * FROM planets WHERE id=$1`,
+        Number(params.planetsId)
+    );
      if (found){
+        console.log(found.name)
          res.status(200).json(found)
      }else{
          res.status(404).json("planet with such id does not exist in DB")
@@ -48,53 +101,88 @@ const getPlanetOfParamId = (req:Request, res:Response) => {
  }
 
 //add planets
-const addPlanets = (req: Request, res:Response) => {
+const addPlanets = async (req: Request, res:Response) => {
         const {body, params} = req;
         if(planetCheck.validate(body).error){
          res.status(400).send("Invalid format")
         }else{
-            planets = [...planets, body]
+           
+           await db.none(`
+            INSERT INTO planets (name) VALUES ($1);
+            `, [body.name]);
+
          
-         
-         res.status(200).json({msg: "successful", result: planets})
+         res.status(200).json({msg: "successful"})
         }    
 }
 
+
+
+
 //Update planets
-const updatePlanets = (req:Request, res:Response) => {
+const updatePlanets = async (req:Request, res:Response) => {
     const {body, params} = req;
     if(planetCheck.validate(body).error){
      res.status(400).send("Invalid format")
     }else{
-     const newplanets = planets.map((planet: Planet) => {
-         if(planet.id === Number(params.planetsId)){
-             return {...planet, ...body}
-         } else{
-         return planet;
+
+        await db.none(`
+            UPDATE planets SET name=$2 WHERE id=$1
+            `, [params.planetsId, body.name]);
+            res.status(200).json({msg: "Updated successfully"})
+
+     
      }
-     })
-     planets = [...newplanets]   
-     res.status(200).json({msg: "successful", result: newplanets})
-    }
- }
+     }
+       
+    
+ 
 
 
  //delete items in planets
- const deletePlanets = (req:Request, res:Response) => {
+ const deletePlanets = async (req:Request, res:Response) => {
     const {body, params} =  req;
     if(planetCheck.validate(body).error){
      res.status(400).send("Invalid Format!")
-    }else{  
-      const newPlanets = planets.filter((planet) => planet.id !== Number(params.planetsId))
-          if(newPlanets){
-         res.status(200).json({key: "Successful", result: newPlanets})
-         planets = [...newPlanets];
-     }else{
-         res.status(404).send("Id does not exist")
-     }   
+    }else{ 
+       await db.none(`
+        DELETE FROM planets WHERE id=$1
+        `,[params.planetsId]);
+        res.status(200).json({msg: "Deleted successfully"})
+
+      
     }
  }
 
+ //addImage
+ const uploadImage = async (request: Request, response: Response) => {
+    try {
+
+        const { params } = request;
+      
+      const filename = request.file?.path;
+  
+      if (
+        Joi.number()
+          .required()
+          .min(1)
+          .max(99999)
+          .validate(params.planetsId).error || !filename
+      ) {
+        response.status(400).send("La richiesta è in un formato non corretto");
+      } else {
+        await db.none(`UPDATE planets SET image=$2 WHERE id=$1`, [params.planetsId, filename])
+        response.send("Immagine caricata con successo");
+      }
+    } catch (error) {
+      console.error(error);
+      response.status(500).send("Internal server error");
+    }
+  };
+
  export {
-    addPlanets, deletePlanets, getPlanetOfParamId, getPlanets, updatePlanets
+    addPlanets, deletePlanets, getPlanetOfParamId, getPlanets, updatePlanets, uploadImage
 };
+
+
+
