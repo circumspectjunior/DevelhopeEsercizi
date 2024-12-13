@@ -14,9 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadImage = exports.updatePlanets = exports.getPlanets = exports.getPlanetOfParamId = exports.deletePlanets = exports.addPlanets = void 0;
 const joi_1 = __importDefault(require("joi"));
-const pg_promise_1 = __importDefault(require("pg-promise"));
-const db = (0, pg_promise_1.default)()("postgres://postgres:PrinceAlex10@localhost:5432/demoDB");
-console.log(db);
+const db_1 = require("./db");
+console.log(db_1.db);
 /*
 //set up db
 const createDB = async () => {
@@ -64,7 +63,7 @@ const planetCheck = joi_1.default.object({
 });
 //get all the items inside planets array and show them
 const getPlanets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const planet = yield db.many(`
+    const planet = yield db_1.db.many(`
         SELECT * FROM planets;
         `);
     if (planet) {
@@ -83,7 +82,7 @@ const getPlanetOfParamId = (req, res) => __awaiter(void 0, void 0, void 0, funct
         res.status(400).json("Invalid id format");
     }
     else {
-        const found = yield db.oneOrNone(`
+        const found = yield db_1.db.oneOrNone(`
         SELECT * FROM planets WHERE id=$1`, Number(params.planetsId));
         if (found) {
             console.log(found.name);
@@ -102,7 +101,7 @@ const addPlanets = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(400).send("Invalid format");
     }
     else {
-        yield db.none(`
+        yield db_1.db.none(`
             INSERT INTO planets (name) VALUES ($1);
             `, [body.name]);
         res.status(200).json({ msg: "successful" });
@@ -116,7 +115,7 @@ const updatePlanets = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(400).send("Invalid format");
     }
     else {
-        yield db.none(`
+        yield db_1.db.none(`
             UPDATE planets SET name=$2 WHERE id=$1
             `, [params.planetsId, body.name]);
         res.status(200).json({ msg: "Updated successfully" });
@@ -130,7 +129,7 @@ const deletePlanets = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(400).send("Invalid Format!");
     }
     else {
-        yield db.none(`
+        yield db_1.db.none(`
         DELETE FROM planets WHERE id=$1
         `, [params.planetsId]);
         res.status(200).json({ msg: "Deleted successfully" });
@@ -151,7 +150,7 @@ const uploadImage = (request, response) => __awaiter(void 0, void 0, void 0, fun
             response.status(400).send("La richiesta è in un formato non corretto");
         }
         else {
-            yield db.none(`UPDATE planets SET image=$2 WHERE id=$1`, [params.planetsId, filename]);
+            yield db_1.db.none(`UPDATE planets SET image=$2 WHERE id=$1`, [params.planetsId, filename]);
             response.send("Immagine caricata con successo");
         }
     }

@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
 const multer_1 = __importDefault(require("multer"));
 const planets_1 = require("./controlers/planets");
+const users_1 = require("./controlers/users");
 const app = (0, express_1.default)();
 const port = 3000;
 const storage = multer_1.default.diskStorage({ destination: (req, file, cb) => {
@@ -26,6 +27,8 @@ app.post("/api/planets", planets_1.addPlanets);
 app.put("/api/planets/:planetsId", planets_1.updatePlanets);
 app.post("/api/planets/:planetsId/image", upload.single('image'), planets_1.uploadImage);
 app.delete("/api/planets/:planetsId", planets_1.deletePlanets);
+app.post("/auth/login", users_1.login);
+app.post("/auth/signup", users_1.signup);
 app.listen(port, () => {
     console.log("server currently listening on http://localhost:3000");
 });

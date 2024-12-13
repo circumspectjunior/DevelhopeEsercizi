@@ -12,6 +12,8 @@ import {
     uploadImage
 } from "./controlers/planets";
 
+import { login, signup } from "./controlers/users";
+
 
 
 const app = express();
@@ -44,6 +46,9 @@ app.post("/api/planets", addPlanets)
 app.put("/api/planets/:planetsId", updatePlanets)
 app.post("/api/planets/:planetsId/image", upload.single('image'), uploadImage)
 app.delete("/api/planets/:planetsId", deletePlanets)
+
+app.post("/auth/login", login);
+app.post("/auth/signup", signup);
 
 app.listen(port, () =>{
     console.log("server currently listening on http://localhost:3000")

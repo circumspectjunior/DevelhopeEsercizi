@@ -1,10 +1,9 @@
-import dotenv from "dotenv";
-import passport from "passport";
-import passportJWT from "passport-jwt";
-import pgPromise from "pg-promise";
+import * as dotenv from "dotenv";
+import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import { db } from "./db";
 
 dotenv.config();
-const db = pgPromise()("postgres://postgres:PrinceAlex10@localhost:5432/demoDB");
 
 
 const createUserDB = async () => {
@@ -23,36 +22,77 @@ const createUserDB = async () => {
     await db.none(`
         INSERT INTO users (username, password) VALUES ('Sam', 'Sam123');
     `);
+
+    const usersS = await db.many(`
+        SELECT * FROM users;
+        `);
+
+        console.log("users", usersS)
 }
 
 createUserDB();
 
-type User = {
-    id: number;
-    username: string;
-    password: string;
-    token?: string;
-}
-
-passport.use(
-    new passportJWT.Strategy(
-      {
-        secretOrKey: process.env.SECRET_KEY as string,
-        jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken(),
-      },
-      async (payload, done) => {
-        try {
-          const { id } = payload;
-          const user: User | null = await db.oneOrNone(`SELECT * FROM users WHERE id=$1`, id);
+const login = async (request: Request, response: Response) => {
+    try {
+      console.log("body", request);
+      const { username, password } = request.body;
   
-          if (user) {
-            done(null, user);
-          } else {
-            done(new Error("User not found"), undefined);
-          }
-        } catch (error) {
-          done(error, undefined);
-        }
+      const user = await db.oneOrNone(
+        `SELECT * FROM users WHERE username=$1`,
+        username
+      );
+  
+      if (user && user.password === password) {
+        const payload = {
+          id: user.id,
+          username: user.username
+        };
+        const token = jwt.sign(payload, process.env.SECRET_KEY);
+  
+        console.log("Token", token);
+        await db.none(`UPDATE users SET token=$2 WHERE id=$1`, [user.id, token]);
+  
+        response.status(200).json({
+          id: user.id,
+          token,
+        });
+      } else {
+        response.status(400).send("User not found");
       }
-    )
-  );
+    } catch (error) {
+      console.error(error);
+      response.status(500).send("Internal server error");
+    }
+  };
+  
+  const signup = async (request: Request, response: Response) => {
+    try {
+      const { username, password } = request.body;
+  
+      const checkUser = await db.oneOrNone(
+        `SELECT * FROM users WHERE username=$1`,
+        username
+      );
+
+      if (checkUser) {
+        response.status(400).send("User already exist,  login");
+      } else {
+        const newUser = await db.one(
+          `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id`,
+          [username, password]
+        );
+  
+        response.status(201).json({ id: newUser.id, message: "user created" });
+      }
+    } catch (error) {
+      console.error(error);
+      response.status(500).send("Internal server error");
+    }
+  };
+
+  export {
+    login,
+    signup
+};
+  
+
