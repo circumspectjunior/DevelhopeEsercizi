@@ -12,7 +12,8 @@ import {
     uploadImage
 } from "./controlers/planets";
 
-import { login, signup } from "./controlers/users";
+import authorize from "./controlers/authorize";
+import { getUser, login, signup } from "./controlers/users";
 
 
 
@@ -49,6 +50,9 @@ app.delete("/api/planets/:planetsId", deletePlanets)
 
 app.post("/auth/login", login);
 app.post("/auth/signup", signup);
+
+app.get("/users/chi-sono", authorize, getUser)
+
 
 app.listen(port, () =>{
     console.log("server currently listening on http://localhost:3000")

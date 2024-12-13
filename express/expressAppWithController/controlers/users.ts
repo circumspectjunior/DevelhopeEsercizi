@@ -8,6 +8,13 @@ const app = express();
 
 app.use(express.json());
 
+type User = {
+  id: number;
+  username: string;
+  password: string;
+  token?: string;
+}
+
 
 const createUserDB = async () => {
 
@@ -93,8 +100,26 @@ const login = async (request: Request, response: Response) => {
     }
   };
 
+  const getUser = async (request: Request, response: Response) => {
+    try {
+      const user = request.user as User;
+      if (user?.id) {
+        const checkUser = await db.oneOrNone(`SELECT * FROM users WHERE id=$1`, user.id);
+        if (checkUser) {
+          response.status(200).json(checkUser);
+          
+        } else {
+          response.status(400).send("User not found");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      response.status(500).send("Internal server error");
+    }
+  }
+
   export {
-  login,
+  getUser, login,
   signup
 };
   
